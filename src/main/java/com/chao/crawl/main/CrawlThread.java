@@ -20,25 +20,35 @@ public class CrawlThread implements Runnable {
 		// set loop limits
 		while (!Links.unVisitedUrlQueueIsEmpty() && Links.getVisitedUrlNum() <= 1000) {
 
-			int count = ((ThreadPoolExecutor) MyCrawler.executor).getActiveCount();
-
 			// pop first from link list
 			String visitUrl = (String) Links.removeHeadOfUnVisitedUrlQueue();
 			if (visitUrl == null) {
 				continue;
 			}
-
+			
 			Page page = null;
 			try {
+				/*
+				 * for category structure of page
+				 * http://www.sli-demo.com/accessories/eyewear/jackie-o-round-sunglasses.html,
+				 * always having different html source between getting source by http request
+				 * and by view source in browser, '<li class="category6"> <a
+				 * href="http://www.sli-demo.com/accessories.html" title="">Accessories</a>
+				 * <span>/ </span> </li> <li class="category18"> <a
+				 * href="http://www.sli-demo.com/accessories/eyewear.html" title="">Eyewear</a>
+				 * <span>/ </span>'
+				 * 
+				 * are omitted. trying to find out why
+				 */
 				page = HttpUtil.doRequest(visitUrl);
 
 			} catch (Exception e) {
-				System.out.println("exception begin" + visitUrl);
-				//add failed url to unvisited
+				// System.out.println("exception begin----" + visitUrl);
+				// add failed url to unvisited
 				Links.addUnvisitedUrlQueue(visitUrl);
-				System.out.println("exception ends");
+				// System.out.println("exception ends");
 				continue;
-				
+
 			}
 
 			// find productId
@@ -68,7 +78,7 @@ public class CrawlThread implements Runnable {
 				System.out.println("Category path: " + sb.substring(1, sb.length()));
 				System.out.println("Price: " + price.text());
 				System.out.println("Short description: " + shortDesc.text());
-//				System.out.println("url:-------" + visitUrl);
+				// System.out.println("url:-------" + visitUrl);
 				System.out.println("--------------");
 			}
 
@@ -90,8 +100,10 @@ public class CrawlThread implements Runnable {
 				Links.addUnvisitedUrlQueue(link);
 			}
 
-//			System.out.println("unvisited: " + Links.unVisitedUrlQueue.size() + "-----size: " + Links.getVisitedUrlNum()
-//					+ "---active:" + count);
+//			 int count = ((ThreadPoolExecutor) MyCrawler.executor).getActiveCount();
+//			 System.out.println("unvisited: " + Links.unVisitedUrlQueue.size() +
+//			 "-----size: " + Links.getVisitedUrlNum()
+//			 + "---active:" + count);
 		}
 	}
 

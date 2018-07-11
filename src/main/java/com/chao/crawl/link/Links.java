@@ -5,8 +5,24 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import com.chao.crawl.contant.Constant;
+
 public class Links {
 
+	//define filter, to filter urls inside the seed website
+    private static LinkFilter filter = new LinkFilter() {
+    	
+        public boolean accept(String url) {
+        	int index = Constant.FEED_URL.substring(Constant.FIRST_SLASH_OF_DOMAIN).indexOf("/");
+        	String mainDomain = Constant.FEED_URL.substring(0, index + Constant.FIRST_SLASH_OF_DOMAIN);
+        	
+            if (url.startsWith(mainDomain))
+                return true;
+            else
+                return false;
+        }
+    };
+    
 	 static //visited url
 	Set<String> set = new HashSet<String>();
     public static Set<String> visitedUrlSet = Collections.synchronizedSet(set);
@@ -38,7 +54,7 @@ public class Links {
 
     //add to unvisited url, unique url
     public static void addUnvisitedUrlQueue(String url) {
-        if (url != null && !url.trim().equals("")  && !visitedUrlSet.contains(url)  && !unVisitedUrlQueue.contains(url)){
+        if (url != null && !url.trim().equals("")  && !visitedUrlSet.contains(url)  && !unVisitedUrlQueue.contains(url) && filter.accept(url)){
             unVisitedUrlQueue.add(url);
         }
     }
@@ -53,6 +69,5 @@ public class Links {
     public static boolean unVisitedUrlQueueIsEmpty() {
         return unVisitedUrlQueue.isEmpty();
     }
-
-
+    
 }

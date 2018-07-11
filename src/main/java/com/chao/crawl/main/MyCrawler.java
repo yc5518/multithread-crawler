@@ -1,6 +1,5 @@
 package com.chao.crawl.main;
 
-import java.io.IOException;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -11,6 +10,7 @@ import org.jsoup.helper.StringUtil;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import com.chao.crawl.contant.Constant;
 import com.chao.crawl.link.Links;
 import com.chao.crawl.page.Page;
 import com.chao.crawl.page.PageParser;
@@ -19,8 +19,9 @@ import com.chao.crawl.util.HttpUtil;
 import com.chao.crawl.util.ThreadPoolManager;
 
 public class MyCrawler {
-	
+
 	public static final ExecutorService executor = ThreadPoolManager.getInstance();
+
 	/**
 	 *
 	 * @param seeds
@@ -38,23 +39,22 @@ public class MyCrawler {
 	 *
 	 * @param seeds
 	 * @return
-	 * @throws InterruptedException
-	 * @throws IOException 
+	 * @throws Exception
 	 */
-	public void crawling(String[] seeds) throws InterruptedException, IOException {
-		
+	public void crawling(String[] seeds) throws Exception {
+
 		try {
 			// init url links
 			initCrawlerWithSeeds(seeds);
 
-			//run for once to add unvisited url to the queue
+			// run for once to add unvisited url to the queue
 			extractInfo();
-			
-			//run in thread pool
-			Links.unVisitedUrlQueue.parallelStream()
-					.forEach((link) -> CompletableFuture.runAsync(new CrawlThread(), executor));
+
+			// run in thread pool
+			 Links.unVisitedUrlQueue.parallelStream()
+			 .forEach((link) -> CompletableFuture.runAsync(new CrawlThread(), executor));
 		} finally {
-			//shutdown executor
+			// shutdown executor
 			executor.shutdown();
 			if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
 				executor.shutdownNow();
@@ -62,12 +62,12 @@ public class MyCrawler {
 		}
 	}
 
-	private void extractInfo() throws IOException {
-		
+	private void extractInfo() throws Exception {
+
 		// pop first from link list
 		String visitUrl = (String) Links.removeHeadOfUnVisitedUrlQueue();
-		
-		if(StringUtil.isBlank(visitUrl))
+
+		if (StringUtil.isBlank(visitUrl))
 			return;
 
 		Page page = HttpUtil.doRequest(visitUrl);
@@ -119,11 +119,12 @@ public class MyCrawler {
 		for (String link : links) {
 			Links.addUnvisitedUrlQueue(link);
 		}
-		
+
 	}
 
-	public static void main(String[] args) throws InterruptedException, IOException {
+	public static void main(String[] args) throws Exception {
+		
 		MyCrawler crawler = new MyCrawler();
-		crawler.crawling(new String[] { "http://www.sli-demo.com/slim-fit-dobby-oxford-shirt-536.html" });
+		crawler.crawling(new String[] { Constant.FEED_URL });
 	}
 }
